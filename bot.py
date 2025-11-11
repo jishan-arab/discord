@@ -1,0 +1,49 @@
+import discord
+from discord.ext import commands
+import logging
+import os
+from dotenv import load_dotenv
+from datetime import datetime
+
+
+load_dotenv()
+
+
+os.makedirs("log", exist_ok=True)
+
+
+log_filename = datetime.now().strftime("bot-%Y-%m-%d.log")
+log_path = os.path.join("log", log_filename)
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.FileHandler(log_path, encoding="utf-8"),
+        logging.StreamHandler()
+    ]
+)
+
+
+intents = discord.Intents.default()
+intents.message_content = True  # Required for message commands
+
+bot = commands.Bot(command_prefix="**", intents=intents)
+
+
+@bot.event
+async def on_ready():
+    logging.info(f"{bot.user} ~_~ ✅ ONLINE")
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send("🏓 Pong!")
+    logging.info(f"Ping command used by {ctx.author} in #{ctx.channel}")
+
+
+token = os.getenv("DISCORD_TOKEN")
+if not token:
+    logging.error("❌ No DISCORD_TOKEN found in .env file.")
+else:
+    bot.run(token)
